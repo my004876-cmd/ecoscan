@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>EcoScan – Phân Loại Rác Thông Minh</title>
-<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/ml5@1/dist/ml5.min.js"></script>
 
@@ -13,998 +13,252 @@
     --g1: #97A970; --g2: #B5C99A; --g3: #87986A;
     --g4: #CFE1B9; --g5: #718355; --g6: #E9F5DB;
     --b1: #B08968; --b2: #DDB892; --b3: #906644;
-    --b4: #776859; --b5: #EDE0D4;
-    --bg: #F5F0E8;
-    --card: #FFFDF7;
-    --text: #3B3228;
-    --muted: #9B8A7A;
-    --radius: 18px;
-    --shadow: 0 4px 24px rgba(112,90,60,.10);
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'Quicksand', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    display: flex;
-    min-height: 100vh;
-    overflow-x: hidden;
+    --bg: #F5F0E8; --card: #FFFDF7; --text: #3B3228;
   }
 
-  /* ── SIDEBAR ── */
-  #sidebar {
-    width: 230px;
-    min-height: 100vh;
-    background: linear-gradient(170deg, var(--g5) 0%, var(--b3) 100%);
-    display: flex;
-    flex-direction: column;
-    padding: 28px 18px 24px;
-    position: fixed;
-    top: 0; left: 0; bottom: 0;
-    z-index: 100;
-    box-shadow: 4px 0 24px rgba(60,40,20,.15);
-  }
-  .logo {
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 40px;
-  }
-  .logo-icon {
-    width: 42px; height: 42px;
-    background: var(--g4);
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
-  }
-  .logo-text { color: #fff; font-size: 20px; font-weight: 700; letter-spacing: .5px; }
-  .logo-sub  { color: var(--g4); font-size: 11px; font-weight: 500; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Be Vietnam Pro', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 80px; }
 
-  nav { flex: 1; }
-  .nav-label {
-    color: var(--g4); font-size: 10px; font-weight: 700;
-    letter-spacing: 1.5px; text-transform: uppercase;
-    margin: 0 0 10px 8px;
+  /* ── NAVIGATION BAR ── */
+  #navbar {
+    background: linear-gradient(90deg, var(--g5), var(--b3));
+    padding: 15px; position: sticky; top: 0; z-index: 1000;
+    display: flex; justify-content: space-between; align-items: center; color: white;
   }
-  .nav-item {
-    display: flex; align-items: center; gap: 12px;
-    padding: 11px 14px; border-radius: 12px;
-    color: rgba(255,255,255,.75);
-    font-size: 14px; font-weight: 600;
-    cursor: pointer; transition: all .2s;
-    margin-bottom: 4px; user-select: none;
+  .nav-links { display: flex; gap: 10px; }
+  .nav-item { 
+    padding: 8px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; 
+    cursor: pointer; text-decoration: none; color: rgba(255,255,255,0.8);
   }
-  .nav-item:hover, .nav-item.active {
-    background: rgba(255,255,255,.18);
-    color: #fff;
-  }
-  .nav-item .icon { font-size: 18px; width: 22px; text-align: center; }
-  .nav-badge {
-    margin-left: auto;
-    background: var(--g4); color: var(--g5);
-    font-size: 10px; font-weight: 700;
-    padding: 2px 7px; border-radius: 20px;
-  }
+  .nav-item.active { background: white; color: var(--g5); }
 
-  .sidebar-footer {
-    border-top: 1px solid rgba(255,255,255,.15);
-    padding-top: 18px;
-    color: rgba(255,255,255,.5);
-    font-size: 11px; line-height: 1.6;
-  }
-
-  /* ── MAIN ── */
-  #main {
-    margin-left: 230px;
-    flex: 1;
-    padding: 30px 32px;
-    min-height: 100vh;
-  }
-
-  /* Page sections */
+  #main { max-width: 600px; margin: 0 auto; padding: 15px; }
   .page { display: none; }
-  .page.active { display: block; animation: fadeIn .35s ease; }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+  .page.active { display: block; animation: slideUp 0.3s ease-out; }
+  @keyframes slideUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
 
-  /* ── PAGE HEADER ── */
-  .page-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 26px;
-  }
-  .page-title { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--g5); }
-  .page-sub { color: var(--muted); font-size: 13px; margin-top: 3px; }
-  .date-chip {
-    background: var(--card);
-    border: 1px solid var(--g4);
-    border-radius: 20px;
-    padding: 8px 16px;
-    font-size: 13px; font-weight: 600; color: var(--g5);
-  }
+  .card { background: var(--card); border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+  
+  /* ── TRANG PHÂN LOẠI ── */
+  #media-box { width: 100%; aspect-ratio: 1/1; background: #000; border-radius: 20px; overflow: hidden; position: relative; }
+  #video, #preview { width: 100%; height: 100%; object-fit: cover; }
+  .btn-main { width: 100%; padding: 15px; border-radius: 30px; border: none; font-weight: 700; font-size: 16px; margin-top: 10px; cursor: pointer; transition: 0.2s; }
+  .btn-scan { background: var(--g5); color: white; }
+  .btn-upload { background: var(--g4); color: var(--g5); }
 
-  /* ── GRID ── */
-  .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; margin-bottom: 22px; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 22px; }
-  .grid-cam { display: grid; grid-template-columns: 360px 1fr; gap: 22px; margin-bottom: 22px; }
+  #instruction-card { text-align: center; display: none; }
+  .bin-icon { font-size: 60px; margin-bottom: 10px; }
+  .tip-box { background: var(--g6); padding: 15px; border-radius: 15px; margin-top: 15px; font-size: 14px; text-align: left; border-left: 5px solid var(--g5); }
 
-  /* ── CARDS ── */
-  .card {
-    background: var(--card);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 22px 24px;
-    border: 1px solid rgba(207,225,185,.5);
-    position: relative; overflow: hidden;
-  }
-  .card::before {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--g1), var(--b2));
-  }
-  .card-title {
-    font-size: 11px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 1.2px;
-    color: var(--muted); margin-bottom: 14px;
-  }
+  /* ── TRANG BIỂU ĐỒ ── */
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--b1); }
+  .chart-container { height: 300px; width: 100%; }
 
-  /* ── STAT CARDS ── */
-  .stat-card { padding: 20px 22px; }
-  .stat-card .stat-val {
-    font-family: 'DM Serif Display', serif;
-    font-size: 36px; color: var(--g5);
-    line-height: 1;
-  }
-  .stat-card .stat-lbl {
-    font-size: 12px; color: var(--muted);
-    font-weight: 600; margin-top: 5px;
-  }
-  .stat-card .stat-ico {
-    position: absolute; top: 18px; right: 20px;
-    font-size: 28px; opacity: .25;
-  }
-
-  /* ── CAMERA ── */
-  #cam-wrap {
-    position: relative;
-    background: #1a1a1a;
-    border-radius: 14px;
-    overflow: hidden;
-    aspect-ratio: 4/3;
-    display: flex; align-items: center; justify-content: center;
-  }
-  #cam-wrap video, #cam-wrap canvas {
-    width: 100%; height: 100%;
-    object-fit: cover; display: block;
-  }
-  #cam-overlay {
-    position: absolute; inset: 0;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 12px;
-    background: rgba(26,26,26,.7);
-    color: #fff; text-align: center;
-    transition: opacity .4s;
-  }
-  #cam-overlay .ov-ico { font-size: 48px; }
-  #cam-overlay .ov-txt { font-size: 14px; font-weight: 600; opacity: .8; }
-  #cam-overlay.hidden { opacity: 0; pointer-events: none; }
-
-  /* scan line animation */
-  #scan-line {
-    position: absolute; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, transparent, var(--g4), transparent);
-    animation: scanMove 2s linear infinite;
-    display: none;
-  }
-  @keyframes scanMove {
-    0%   { top: 0; }
-    100% { top: 100%; }
-  }
-  #cam-wrap.scanning #scan-line { display: block; }
-
-  /* corner brackets */
-  .bracket {
-    position: absolute; width: 28px; height: 28px;
-    border-color: var(--g4); border-style: solid;
-    opacity: 0; transition: opacity .4s;
-  }
-  #cam-wrap.scanning .bracket { opacity: 1; }
-  .bracket.tl { top: 10px; left: 10px;  border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
-  .bracket.tr { top: 10px; right: 10px; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
-  .bracket.bl { bottom: 10px; left: 10px;  border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
-  .bracket.br { bottom: 10px; right: 10px; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
-
-  /* ── RESULT PANEL ── */
-  #result-panel {
-    display: flex; flex-direction: column; justify-content: space-between;
-    gap: 14px;
-  }
-  #result-box {
-    flex: 1;
-    border-radius: 14px;
-    padding: 24px;
-    background: var(--g6);
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    text-align: center;
-    transition: background .5s, border-color .5s;
-    border: 2px solid var(--g4);
-    min-height: 200px;
-  }
-  #result-box.organic { background: var(--b5); border-color: var(--b2); }
-  #result-box.waiting { background: #f5f5f5; border-color: #ddd; }
-
-  #result-icon { font-size: 52px; margin-bottom: 10px; }
-  #result-type {
-    font-family: 'DM Serif Display', serif;
-    font-size: 22px; color: var(--g5);
-    margin-bottom: 6px;
-  }
-  #result-box.organic #result-type { color: var(--b3); }
-  #result-instruction {
-    font-size: 13px; font-weight: 600; color: var(--muted);
-  }
-  #result-conf {
-    margin-top: 12px;
-    font-size: 28px; font-weight: 700; color: var(--g3);
-  }
-  #result-box.organic #result-conf { color: var(--b1); }
-
-  #conf-bar-wrap { width: 100%; background: rgba(0,0,0,.08); height: 6px; border-radius: 20px; margin-top: 8px; overflow: hidden; }
-  #conf-bar { height: 100%; border-radius: 20px; background: var(--g3); width: 0; transition: width .4s, background .4s; }
-  #result-box.organic #conf-bar { background: var(--b1); }
-
-  /* Save indicator */
-  #save-flash {
-    background: var(--g5); color: #fff;
-    border-radius: 10px; padding: 8px 16px;
-    font-size: 12px; font-weight: 700;
-    text-align: center;
-    opacity: 0; transition: opacity .3s;
-  }
-  #save-flash.show { opacity: 1; }
-
-  /* Control Buttons */
-  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
-  .btn {
-    padding: 10px 22px; border-radius: 30px;
-    font-family: 'Quicksand', sans-serif;
-    font-size: 13px; font-weight: 700;
-    border: none; cursor: pointer; transition: all .2s;
-    letter-spacing: .3px;
-  }
-  .btn-primary { background: var(--g5); color: #fff; }
-  .btn-primary:hover { background: var(--g3); transform: translateY(-1px); }
-  .btn-secondary { background: var(--b5); color: var(--b3); border: 1.5px solid var(--b2); }
-  .btn-secondary:hover { background: var(--b2); }
-  .btn-danger { background: #fdecea; color: #c0392b; border: 1.5px solid #f5b7b1; }
-  .btn-danger:hover { background: #f5b7b1; }
-  .btn:disabled { opacity: .45; cursor: not-allowed; transform: none !important; }
-
-  /* ── CHARTS ── */
-  .chart-wrap { position: relative; height: 240px; }
-
-  /* ── HISTORY TABLE ── */
-  .hist-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .hist-table th {
-    background: var(--g6); color: var(--g5);
-    font-weight: 700; font-size: 11px; letter-spacing: .8px; text-transform: uppercase;
-    padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--g4);
-  }
-  .hist-table td { padding: 10px 14px; border-bottom: 1px solid #f0ede5; vertical-align: middle; }
-  .hist-table tr:last-child td { border-bottom: none; }
-  .hist-table tr:hover td { background: var(--g6); }
-
-  .type-badge {
-    display: inline-block; padding: 3px 10px; border-radius: 20px;
-    font-size: 11px; font-weight: 700; white-space: nowrap;
-  }
-  .badge-recycle { background: var(--g6); color: var(--g5); }
-  .badge-organic  { background: var(--b5); color: var(--b3); }
-
-  /* ── REPORT ── */
-  .report-section { margin-bottom: 28px; }
-  .report-section h3 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 18px; color: var(--g5);
-    margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
-  }
-  .report-section p {
-    font-size: 13.5px; line-height: 1.8; color: var(--text);
-  }
-  .report-divider { border: none; border-top: 1px solid var(--g4); margin: 22px 0; }
-
-  .highlight-box {
-    background: var(--g6); border-left: 4px solid var(--g3);
-    border-radius: 0 10px 10px 0;
-    padding: 14px 18px; margin-top: 12px;
-    font-size: 13px; line-height: 1.7; color: var(--g5); font-weight: 600;
-  }
-
-  /* ── PULSE CHIP ── */
-  .live-chip {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(113,131,85,.15); color: var(--g5);
-    border-radius: 20px; padding: 4px 12px;
-    font-size: 11px; font-weight: 700;
-  }
-  .live-dot { width: 7px; height: 7px; background: var(--g5); border-radius: 50%; animation: pulse 1.2s ease infinite; }
-  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.3)} }
-
-  /* ── SCROLLBAR ── */
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--g4); border-radius: 10px; }
-
-  /* ── RESPONSIVE small ── */
-  @media (max-width: 1100px) {
-    .grid-cam { grid-template-columns: 1fr; }
-    .grid-3 { grid-template-columns: 1fr 1fr; }
-  }
+  .hidden { display: none !important; }
 </style>
 </head>
 <body>
 
-<!-- ══════════════ SIDEBAR ══════════════ -->
-<aside id="sidebar">
-  <div class="logo">
-    <div class="logo-icon">♻️</div>
-    <div>
-      <div class="logo-text">EcoScan</div>
-      <div class="logo-sub">Phân Loại Rác Thông Minh</div>
-    </div>
-  </div>
-
-  <div class="nav-label">Chức năng</div>
-  <nav>
-    <div class="nav-item active" data-page="dashboard">
-      <span class="icon">🏠</span> Bảng Điều Khiển
-    </div>
-    <div class="nav-item" data-page="history">
-      <span class="icon">📋</span> Lịch Sử
-      <span class="nav-badge" id="hist-count">0</span>
-    </div>
-    <div class="nav-item" data-page="report">
-      <span class="icon">📊</span> Báo Cáo
-    </div>
+<header id="navbar">
+  <div style="font-weight: 800;">♻️ EcoScan</div>
+  <nav class="nav-links">
+    <div class="nav-item active" onclick="showPage('scan-page', this)">📸 Quét rác</div>
+    <div class="nav-item" onclick="showPage('chart-page', this)">📊 Thống kê</div>
+    <div class="nav-item" onclick="showPage('history-page', this)">📋 Nhật ký</div>
   </nav>
+</header>
 
-  <div class="sidebar-footer">
-    <div style="font-weight:700; color:rgba(255,255,255,.6); margin-bottom:4px;">Dự án Trường Học</div>
-    Phân tích rác địa phương<br>
-    Bảo mật dữ liệu 100% nội bộ
-  </div>
-</aside>
-
-<!-- ══════════════ MAIN CONTENT ══════════════ -->
 <main id="main">
-
-  <!-- ── PAGE: DASHBOARD ── -->
-  <div class="page active" id="page-dashboard">
-    <div class="page-header">
-      <div>
-        <div class="page-title">Bảng Điều Khiển</div>
-        <div class="page-sub">Phân loại rác theo thời gian thực bằng AI</div>
-      </div>
-      <div class="date-chip" id="date-display">──</div>
+  <div id="scan-page" class="page active">
+    <div id="media-box">
+      <video id="video" autoplay playsinline></video>
+      <img id="preview" class="hidden">
+      <canvas id="canvas" class="hidden"></canvas>
     </div>
 
-    <!-- Stat Row -->
-    <div class="grid-3">
-      <div class="card stat-card">
-        <span class="stat-ico">📦</span>
-        <div class="stat-val" id="stat-total">0</div>
-        <div class="stat-lbl">Tổng số lượng rác</div>
-      </div>
-      <div class="card stat-card">
-        <span class="stat-ico">🎯</span>
-        <div class="stat-val" id="stat-acc">—</div>
-        <div class="stat-lbl">Độ chính xác trung bình</div>
-      </div>
-      <div class="card stat-card">
-        <span class="stat-ico">🏆</span>
-        <div class="stat-val" id="stat-mode" style="font-size:20px; padding-top:8px;">—</div>
-        <div class="stat-lbl">Loại rác phổ biến nhất</div>
-      </div>
+    <button id="btn-capture" class="btn-main btn-scan" onclick="captureAndClassify()">🎯 CHỤP & PHÂN LOẠI</button>
+    <button id="btn-retake" class="btn-main btn-upload hidden" onclick="resetCamera()">🔄 QUAY LẠI CAMERA</button>
+    <button class="btn-main btn-upload" onclick="document.getElementById('file-input').click()">📁 TẢI ẢNH LÊN</button>
+    <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleUpload(event)">
+
+    <div id="instruction-card" class="card">
+      <div id="result-header" style="font-size: 20px; font-weight: 800;"></div>
+      <div class="bin-icon" id="bin-emoji">🗑️</div>
+      <div id="bin-text" style="font-weight: 700; font-size: 18px; margin-bottom: 10px;"></div>
+      <div id="tip-content" class="tip-box"></div>
     </div>
+  </div>
 
-    <!-- Camera + Result -->
-    <div class="grid-cam">
-      <div class="card" style="padding:18px;">
-        <div class="card-title" style="display:flex;align-items:center;gap:8px;">
-          📷 Camera thông minh
-          <span class="live-chip" id="live-indicator" style="display:none;">
-            <span class="live-dot"></span> ĐANG CHẠY
-          </span>
-        </div>
-        <div id="cam-wrap">
-          <video id="video" autoplay playsinline muted></video>
-          <div id="scan-line"></div>
-          <div class="bracket tl"></div>
-          <div class="bracket tr"></div>
-          <div class="bracket bl"></div>
-          <div class="bracket br"></div>
-          <div id="cam-overlay">
-            <div class="ov-ico">📷</div>
-            <div class="ov-txt">Nhấn nút bên dưới để bật camera</div>
-          </div>
-        </div>
-        <div class="btn-row" style="margin-top:14px;">
-          <button class="btn btn-primary" id="btn-start">🔬 Bắt đầu phân loại</button>
-          <button class="btn btn-secondary" id="btn-stop" disabled>⏹ Dừng hệ thống</button>
-        </div>
-      </div>
-
-      <div id="result-panel">
-        <div class="card" style="padding:0; border:none; box-shadow:none; background:transparent;">
-          <div id="result-box" class="waiting">
-            <div id="result-icon">🕐</div>
-            <div id="result-type">Chưa phân loại</div>
-            <div id="result-instruction">Khởi động hệ thống để bắt đầu</div>
-            <div id="result-conf"></div>
-            <div id="conf-bar-wrap" style="display:none;">
-              <div id="conf-bar"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card" style="padding:16px;">
-          <div class="card-title">Tự động lưu khi ≥ 95% trong 2 giây</div>
-          <div id="save-flash">✅ Đã lưu mục phân loại!</div>
-          <div style="margin-top:10px; display:flex; align-items:center; gap:8px;">
-            <div style="font-size:12px; color:var(--muted);">Tiến trình xác nhận:</div>
-            <div style="flex:1; background:#eee; height:6px; border-radius:20px; overflow:hidden;">
-              <div id="confirm-bar" style="height:100%; width:0; background:var(--g3); border-radius:20px; transition:width .1s;"></div>
-            </div>
-            <div id="confirm-time" style="font-size:12px; color:var(--muted); width:30px;">0s</div>
-          </div>
-        </div>
-
-        <div class="card" style="padding:16px;">
-          <div class="card-title">Nhãn hiện tại</div>
-          <div id="label-bars"></div>
-        </div>
-      </div>
+  <div id="chart-page" class="page">
+    <div id="no-data" class="empty-state">
+      <div style="font-size: 50px;">📉</div>
+      <p>Chưa có dữ liệu phân loại.</p>
+      <p style="font-size: 13px;">Hãy chụp ảnh rác để bắt đầu vẽ biểu đồ!</p>
     </div>
-
-    <!-- Charts -->
-    <div class="grid-2">
+    
+    <div id="has-data" class="hidden">
       <div class="card">
-        <div class="card-title">🥧 Phân bổ loại rác</div>
-        <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-title">📊 Khối lượng rác hôm nay</div>
-        <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+        <div style="font-weight: 700; margin-bottom: 15px;">Tỷ lệ các loại rác</div>
+        <div class="chart-container"><canvas id="pieChart"></canvas></div>
       </div>
     </div>
   </div>
 
-  <!-- ── PAGE: HISTORY ── -->
-  <div class="page" id="page-history">
-    <div class="page-header">
-      <div>
-        <div class="page-title">Lịch Sử Phân Loại</div>
-        <div class="page-sub">10 lần phân loại gần nhất</div>
-      </div>
-      <button class="btn btn-danger" id="btn-clear">🗑 Xóa dữ liệu lịch sử</button>
-    </div>
-    <div class="card" style="padding:0; overflow:hidden;">
-      <table class="hist-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Thời gian</th>
-            <th>Loại rác</th>
-            <th>Nhãn gốc</th>
-            <th>Độ chính xác</th>
-            <th>Phân loại</th>
-          </tr>
-        </thead>
-        <tbody id="hist-tbody">
-          <tr><td colspan="6" style="text-align:center; color:var(--muted); padding:30px;">Chưa có dữ liệu</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ── PAGE: REPORT ── -->
-  <div class="page" id="page-report">
-    <div class="page-header">
-      <div>
-        <div class="page-title">Báo Cáo Phản Biện</div>
-        <div class="page-sub">Phân tích đạo đức, quyền riêng tư và tác động cộng đồng của hệ thống AI</div>
-      </div>
-    </div>
-
+  <div id="history-page" class="page">
     <div class="card">
-      <div class="report-section">
-        <h3>⚖️ Đạo Đức AI – Tính Công Bằng Trong Phân Loại</h3>
-        <p>
-          Hệ thống phân loại rác sử dụng mô hình học máy được huấn luyện trên Teachable Machine của Google.
-          Một trong những vấn đề đạo đức cốt lõi là <strong>tính công bằng (fairness)</strong>: mô hình có thể
-          hoạt động tốt với các loại rác quen thuộc nhưng kém chính xác hơn với rác được trình bày theo cách khác
-          (ánh sáng khác nhau, góc độ khác, vật liệu lạ). Điều này có thể dẫn đến phân loại sai, gây ra
-          xử lý rác không đúng cách và ảnh hưởng đến hiệu quả tái chế.
-        </p>
-        <div class="highlight-box">
-          🔑 Giải pháp: Liên tục mở rộng dữ liệu huấn luyện với nhiều điều kiện ánh sáng, góc nhìn, và loại rác đa dạng
-          hơn. Thiết lập ngưỡng tin cậy cao (≥95%) trước khi lưu kết quả để giảm thiểu lỗi phân loại.
-        </div>
-      </div>
-
-      <hr class="report-divider"/>
-
-      <div class="report-section">
-        <h3>🔒 Quyền Riêng Tư – Xử Lý Dữ Liệu Cục Bộ</h3>
-        <p>
-          EcoScan được thiết kế theo nguyên tắc <strong>"Privacy by Design"</strong>: toàn bộ xử lý hình ảnh
-          diễn ra ngay trên trình duyệt của người dùng, không có bất kỳ dữ liệu video nào được gửi lên máy chủ
-          từ xa. Mô hình AI được tải về máy tính người dùng và chạy hoàn toàn cục bộ thông qua ml5.js.
-          Điều này đặc biệt quan trọng trong môi trường học đường, nơi khuôn mặt của học sinh có thể xuất hiện
-          trong khung hình.
-        </p>
-        <p style="margin-top:10px;">
-          Dữ liệu lịch sử phân loại chỉ lưu trên <strong>Local Storage</strong> của trình duyệt, không được
-          đồng bộ hóa hoặc chia sẻ với bất kỳ bên thứ ba nào. Người dùng có toàn quyền xóa dữ liệu bất cứ lúc nào.
-        </p>
-        <div class="highlight-box">
-          🛡 Cam kết: Không thu thập ảnh, không gửi video, không theo dõi người dùng. Mọi xử lý đều nội bộ 100%.
-        </div>
-      </div>
-
-      <hr class="report-divider"/>
-
-      <div class="report-section">
-        <h3>🌱 Tác Động Cộng Đồng – Khuyến Khích Thói Quen Tái Chế</h3>
-        <p>
-          Việc ứng dụng AI vào phân loại rác tại trường học không chỉ giúp giảm thiểu ô nhiễm môi trường mà còn
-          có tác dụng <strong>giáo dục hành vi</strong>: khi học sinh nhận được phản hồi tức thì và trực quan
-          về loại rác mình đang cầm, họ dần hình thành thói quen phân loại chính xác và có trách nhiệm hơn.
-          Dữ liệu thống kê thu thập được cũng giúp nhà trường đánh giá tỷ lệ rác tái chế và điều chỉnh
-          chương trình môi trường phù hợp.
-        </p>
-        <p style="margin-top:10px;">
-          Tuy nhiên, cần nhận thức rằng công nghệ chỉ là công cụ hỗ trợ: <strong>ý thức cá nhân và giáo dục
-          môi trường toàn diện</strong> mới là nền tảng bền vững cho thói quen xanh. Hệ thống AI cần đi kèm
-          với các chương trình tuyên truyền và chính sách rõ ràng về quản lý chất thải.
-        </p>
-        <div class="highlight-box">
-          🌍 Mục tiêu: Giảm ≥30% rác lẫn lộn trong khu vực trường học, tăng tỷ lệ tái chế và hình thành
-          thế hệ học sinh có ý thức môi trường từ sớm.
-        </div>
-      </div>
-
-      <hr class="report-divider"/>
-
-      <div class="report-section">
-        <h3>⚠️ Hạn Chế & Hướng Phát Triển</h3>
-        <p>
-          Mô hình hiện tại có giới hạn về số lượng nhãn (4 loại rác chính) và chỉ hoạt động tốt với điều kiện
-          ánh sáng đầy đủ. Trong tương lai, dự án có thể mở rộng sang nhận diện rác nguy hại, tích hợp cảnh báo
-          thùng rác đầy qua IoT, và xây dựng mô hình liên kết (federated learning) để cải thiện độ chính xác
-          mà vẫn bảo vệ quyền riêng tư.
-        </p>
-      </div>
+      <div style="font-weight: 700; margin-bottom: 10px;">10 lần quét gần nhất</div>
+      <div id="history-list" style="font-size: 14px;"></div>
     </div>
   </div>
-
 </main>
 
 <script>
-// ═══════════════════════════════════════════════════════
-// CONFIGURATION
-// ═══════════════════════════════════════════════════════
-const MODEL_URL = 'https://teachablemachine.withgoogle.com/models/dgtSA5qiE/';
-const LABELS = ['Carton', 'Giấy', 'Nhựa', 'Hữu Cơ', 'Background'];
-const LABEL_VI = {
-  'Carton': 'Bìa Carton',
-  'Giấy':   'Giấy',
-  'Nhựa':   'Nhựa',
-  'Hữu Cơ': 'Rác Hữu Cơ',
-  'Background': 'Nền'
-};
-const RECYCLE_LABELS  = [0, 1, 2]; // Carton, Giay, Nhua
-const ORGANIC_LABEL   = 3;
-const BACKGROUND_LABEL= 4;
-const CONFIDENCE_THRESHOLD = 0.95;
-const CONFIRM_DURATION_MS  = 2000;
-const STORAGE_KEY = 'ecoscan_history';
+  const MODEL_URL = 'https://teachablemachine.withgoogle.com/models/dgtSA5qiE/';
+  let classifier, video, pieChart;
+  let wasteData = { 'Carton': 0, 'Giấy': 0, 'Nhựa': 0, 'Hữu Cơ': 0 };
 
-// ═══════════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════════
-let classifier = null;
-let videoStream = null;
-let isRunning   = false;
-let confirmStart = null;
-let lastSavedLabel = null;
-let confirmLabelIndex = null;
-let pieChart = null, barChart = null;
+  // Khởi tạo
+  async function init() {
+    video = document.getElementById('video');
+    classifier = await ml5.imageClassifier(MODEL_URL + 'model.json');
+    startCamera();
+    loadLocalData();
+  }
 
-// ═══════════════════════════════════════════════════════
-// NAVIGATION
-// ═══════════════════════════════════════════════════════
-document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    item.classList.add('active');
-    const page = item.dataset.page;
+  function startCamera() {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      .then(s => video.srcObject = s);
+  }
+
+  function showPage(id, el) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-' + page).classList.add('active');
-    if (page === 'history') renderHistoryTable();
-    if (page === 'dashboard') updateCharts();
-  });
-});
-
-// ═══════════════════════════════════════════════════════
-// DATE DISPLAY
-// ═══════════════════════════════════════════════════════
-(function updateDate() {
-  const now = new Date();
-  const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
-  document.getElementById('date-display').textContent = now.toLocaleDateString('vi-VN', opts);
-})();
-
-// ═══════════════════════════════════════════════════════
-// LOCAL STORAGE HELPERS
-// ═══════════════════════════════════════════════════════
-function getHistory() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-  catch { return []; }
-}
-function saveEntry(entry) {
-  const hist = getHistory();
-  hist.unshift(entry);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(hist));
-  updateBadge();
-  updateStats();
-  updateCharts();
-}
-function clearHistory() {
-  localStorage.removeItem(STORAGE_KEY);
-  updateBadge(); updateStats(); updateCharts(); renderHistoryTable();
-}
-function updateBadge() {
-  document.getElementById('hist-count').textContent = getHistory().length;
-}
-
-// ═══════════════════════════════════════════════════════
-// STATS
-// ═══════════════════════════════════════════════════════
-function updateStats() {
-  const hist = getHistory();
-  document.getElementById('stat-total').textContent = hist.length;
-
-  if (hist.length === 0) {
-    document.getElementById('stat-acc').textContent  = '—';
-    document.getElementById('stat-mode').textContent = '—';
-    return;
-  }
-  const avgAcc = hist.reduce((s,e) => s + e.confidence, 0) / hist.length;
-  document.getElementById('stat-acc').textContent = (avgAcc * 100).toFixed(1) + '%';
-
-  // Mode calculation
-  const counts = {};
-  hist.forEach(e => { counts[e.label] = (counts[e.label]||0)+1; });
-  const mode = Object.entries(counts).sort((a,b) => b[1]-a[1])[0][0];
-  document.getElementById('stat-mode').textContent = LABEL_VI[mode] || mode;
-}
-
-// ═══════════════════════════════════════════════════════
-// CHARTS
-// ═══════════════════════════════════════════════════════
-function initCharts() {
-  const pieCtx = document.getElementById('pieChart').getContext('2d');
-  pieChart = new Chart(pieCtx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Carton','Giấy','Nhựa','Hữu Cơ'],
-      datasets: [{ data: [0,0,0,0],
-        backgroundColor: ['#97A970','#B5C99A','#718355','#DDB892'],
-        borderColor: '#FFFDF7', borderWidth: 3,
-        hoverOffset: 8
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position:'bottom', labels:{ font:{ family:'Quicksand', weight:'600' }, color:'#3B3228' } } }
-    }
-  });
-
-  const barCtx = document.getElementById('barChart').getContext('2d');
-  barChart = new Chart(barCtx, {
-    type: 'bar',
-    data: {
-      labels: ['Carton','Giấy','Nhựa','Hữu Cơ'],
-      datasets: [{ label: 'Số lượng', data: [0,0,0,0],
-        backgroundColor: ['#97A970','#B5C99A','#718355','#DDB892'],
-        borderRadius: 8, borderSkipped: false
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend:{ display:false } },
-      scales: {
-        y: { beginAtZero:true, ticks:{ stepSize:1, font:{family:'Quicksand'}, color:'#776859' }, grid:{ color:'#f0ede5' } },
-        x: { ticks:{ font:{family:'Quicksand'}, color:'#776859' }, grid:{ display:false } }
-      }
-    }
-  });
-  updateCharts();
-}
-
-function updateCharts() {
-  if (!pieChart || !barChart) return;
-  const hist = getHistory();
-  const todayStr = new Date().toDateString();
-  const todayHist = hist.filter(e => new Date(e.timestamp).toDateString() === todayStr);
-
-  const allCounts   = [0,0,0,0];
-  const todayCounts = [0,0,0,0];
-  const labelMap = { 'Carton':0, 'Giấy':1, 'Nhựa':2, 'Hữu Cơ':3 };
-  hist.forEach(e => { if(labelMap[e.label]!==undefined) allCounts[labelMap[e.label]]++; });
-  todayHist.forEach(e => { if(labelMap[e.label]!==undefined) todayCounts[labelMap[e.label]]++; });
-
-  pieChart.data.datasets[0].data = allCounts;
-  pieChart.update('none');
-  barChart.data.datasets[0].data = todayCounts;
-  barChart.update('none');
-}
-
-// ═══════════════════════════════════════════════════════
-// HISTORY TABLE
-// ═══════════════════════════════════════════════════════
-function renderHistoryTable() {
-  const hist = getHistory().slice(0, 10);
-  const tbody = document.getElementById('hist-tbody');
-  if (hist.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px;">Chưa có dữ liệu</td></tr>';
-    return;
-  }
-  tbody.innerHTML = hist.map((e,i) => {
-    const isRecycle = e.category === 'recycle';
-    const badge = isRecycle
-      ? '<span class="type-badge badge-recycle">♻️ Tái Chế</span>'
-      : '<span class="type-badge badge-organic">🌿 Hữu Cơ</span>';
-    const dt = new Date(e.timestamp);
-    const timeStr = dt.toLocaleTimeString('vi-VN') + ' ' + dt.toLocaleDateString('vi-VN');
-    return `<tr>
-      <td style="color:var(--muted);font-weight:700;">${i+1}</td>
-      <td style="font-size:12px;">${timeStr}</td>
-      <td style="font-weight:700;">${LABEL_VI[e.label]||e.label}</td>
-      <td style="color:var(--muted);">${e.label}</td>
-      <td><strong>${(e.confidence*100).toFixed(1)}%</strong></td>
-      <td>${badge}</td>
-    </tr>`;
-  }).join('');
-}
-
-document.getElementById('btn-clear').addEventListener('click', () => {
-  if (confirm('Bạn có chắc muốn xóa toàn bộ lịch sử không?')) {
-    clearHistory();
-  }
-});
-
-// ═══════════════════════════════════════════════════════
-// RESULT PANEL
-// ═══════════════════════════════════════════════════════
-function setResultWaiting() {
-  const box = document.getElementById('result-box');
-  box.className = 'waiting';
-  document.getElementById('result-icon').textContent = '🕐';
-  document.getElementById('result-type').textContent = 'Đang chờ rác...';
-  document.getElementById('result-instruction').textContent = 'Đặt rác trước camera';
-  document.getElementById('result-conf').textContent = '';
-  document.getElementById('conf-bar-wrap').style.display = 'none';
-  setConfirmProgress(0);
-}
-
-function setResultRecycle(label, confidence) {
-  const box = document.getElementById('result-box');
-  box.className = 'recycle';
-  document.getElementById('result-icon').textContent = '♻️';
-  document.getElementById('result-type').textContent = 'RÁC TÁI CHẾ';
-  document.getElementById('result-instruction').textContent = `${LABEL_VI[label]||label} → Bỏ vào THÙNG XANH`;
-  document.getElementById('result-conf').textContent = (confidence*100).toFixed(1) + '%';
-  const bar = document.getElementById('conf-bar');
-  bar.style.background = 'var(--g3)';
-  bar.style.width = (confidence*100) + '%';
-  document.getElementById('conf-bar-wrap').style.display = 'block';
-}
-
-function setResultOrganic(confidence) {
-  const box = document.getElementById('result-box');
-  box.className = 'organic';
-  document.getElementById('result-icon').textContent = '🌿';
-  document.getElementById('result-type').textContent = 'RÁC HỮU CƠ';
-  document.getElementById('result-instruction').textContent = 'Hữu Cơ → Bỏ vào THÙNG ĐỎ';
-  document.getElementById('result-conf').textContent = (confidence*100).toFixed(1) + '%';
-  const bar = document.getElementById('conf-bar');
-  bar.style.background = 'var(--b1)';
-  bar.style.width = (confidence*100) + '%';
-  document.getElementById('conf-bar-wrap').style.display = 'block';
-}
-
-function setConfirmProgress(ratio) {
-  document.getElementById('confirm-bar').style.width = (ratio*100) + '%';
-  document.getElementById('confirm-time').textContent = ratio > 0
-    ? (ratio * CONFIRM_DURATION_MS / 1000).toFixed(1) + 's'
-    : '0s';
-}
-
-function flashSaved() {
-  const el = document.getElementById('save-flash');
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2200);
-}
-
-// ═══════════════════════════════════════════════════════
-// LABEL BARS
-// ═══════════════════════════════════════════════════════
-function updateLabelBars(predictions) {
-  const container = document.getElementById('label-bars');
-  container.innerHTML = predictions.map(p => {
-    const pct = (p.probability * 100).toFixed(1);
-    const isTop = p.probability === Math.max(...predictions.map(x=>x.probability));
-    return `<div style="margin-bottom:8px;">
-      <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:${isTop?700:500};color:${isTop?'var(--g5)':'var(--muted)'}; margin-bottom:3px;">
-        <span>${LABEL_VI[p.label]||p.label}</span><span>${pct}%</span>
-      </div>
-      <div style="background:#eee;height:5px;border-radius:20px;overflow:hidden;">
-        <div style="height:100%;width:${pct}%;background:${isTop?'var(--g3)':'var(--g4)'};border-radius:20px;transition:width .3s;"></div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ═══════════════════════════════════════════════════════
-// ML5 CLASSIFIER
-// ═══════════════════════════════════════════════════════
-async function startCamera() {
-  const video = document.getElementById('video');
-  try {
-    videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'environment' }, audio: false });
-    video.srcObject = videoStream;
-    await new Promise(res => video.onloadedmetadata = res);
-  } catch(err) {
-    alert('Không thể truy cập camera: ' + err.message);
-    return false;
-  }
-  return true;
-}
-
-async function loadModel() {
-  return new Promise((resolve, reject) => {
-    const modelURL = MODEL_URL + 'model.json';
-    const metaURL  = MODEL_URL + 'metadata.json';
-    const classifier = ml5.imageClassifier(modelURL, () => resolve(classifier));
-  });
-}
-
-let predictionLoop = null;
-
-async function startSystem() {
-  document.getElementById('btn-start').disabled = true;
-  document.getElementById('btn-start').textContent = '⏳ Đang khởi động...';
-
-  const ok = await startCamera();
-  if (!ok) { document.getElementById('btn-start').disabled = false; document.getElementById('btn-start').textContent = '🔬 Bắt đầu phân loại'; return; }
-
-  try {
-    classifier = await loadModel();
-  } catch(e) {
-    alert('Không tải được mô hình AI. Vui lòng kiểm tra kết nối mạng.');
-    document.getElementById('btn-start').disabled = false;
-    document.getElementById('btn-start').textContent = '🔬 Bắt đầu phân loại';
-    return;
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    el.classList.add('active');
+    if(id === 'chart-page') renderCharts();
   }
 
-  isRunning = true;
-  document.getElementById('cam-overlay').classList.add('hidden');
-  document.getElementById('cam-wrap').classList.add('scanning');
-  document.getElementById('live-indicator').style.display = 'inline-flex';
-  document.getElementById('btn-stop').disabled = false;
-  document.getElementById('btn-start').textContent = '🔬 Bắt đầu phân loại';
-  document.getElementById('btn-start').disabled = true;
+  // Phân loại
+  function captureAndClassify() {
+    const canvas = document.getElementById('canvas');
+    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    
+    const img = document.getElementById('preview');
+    img.src = canvas.toDataURL('image/png');
+    img.classList.remove('hidden');
+    video.classList.add('hidden');
+    
+    document.getElementById('btn-capture').classList.add('hidden');
+    document.getElementById('btn-retake').classList.remove('hidden');
 
-  runPrediction();
-}
+    classifier.classify(img, (results) => {
+      processResult(results[0]);
+    });
+  }
 
-function runPrediction() {
-  const video = document.getElementById('video');
-  if (!isRunning || !classifier) return;
+  function processResult(res) {
+    const label = res.label;
+    if (label.includes('Background')) return;
 
-  classifier.classify(video, (results, err) => {
-    if (!isRunning) return;
-    if (err || !results) { predictionLoop = requestAnimationFrame(runPrediction); return; }
+    const card = document.getElementById('instruction-card');
+    const header = document.getElementById('result-header');
+    const emoji = document.getElementById('bin-emoji');
+    const txt = document.getElementById('bin-text');
+    const tip = document.getElementById('tip-content');
 
-    // Map labels to our known order
-    const predictions = results.map(r => ({ label: r.label, probability: r.confidence !== undefined ? r.confidence : r.probability }));
-    updateLabelBars(predictions);
+    card.style.display = 'block';
+    header.innerText = `Nhận diện: ${label}`;
 
-    const top = predictions.reduce((a,b) => a.probability > b.probability ? a : b);
-    const topIdx = LABELS.indexOf(top.label.trim());
-
-    if (topIdx === BACKGROUND_LABEL || top.probability < 0.5) {
-      setResultWaiting();
-      confirmStart = null; confirmLabelIndex = null;
-      setConfirmProgress(0);
-    } else if (RECYCLE_LABELS.includes(topIdx)) {
-      setResultRecycle(top.label.trim(), top.probability);
-      handleConfirm(topIdx, top.label.trim(), top.probability, 'recycle');
-    } else if (topIdx === ORGANIC_LABEL) {
-      setResultOrganic(top.probability);
-      handleConfirm(topIdx, top.label.trim(), top.probability, 'organic');
+    // Logic chỉ dẫn & lời khuyên
+    if (label.includes('Hữu')) {
+      emoji.innerText = "🍎";
+      txt.innerText = "BỎ VÀO THÙNG ĐỎ";
+      txt.style.color = "#906644";
+      tip.innerHTML = "<b>Lời khuyên:</b> Rác hữu cơ có thể làm phân bón. Đừng để lẫn túi nilon vào đây bạn nhé!";
+      wasteData['Hữu Cơ']++;
     } else {
-      setResultWaiting();
-      confirmStart = null; confirmLabelIndex = null;
-      setConfirmProgress(0);
+      emoji.innerText = "♻️";
+      txt.innerText = "BỎ VÀO THÙNG XANH";
+      txt.style.color = "#718355";
+      tip.innerHTML = `<b>Lời khuyên:</b> Đây là rác tái chế (${label}). Hãy đảm bảo vật thể khô và sạch trước khi vứt.`;
+      if(label.includes('Carton')) wasteData['Carton']++;
+      else if(label.includes('Giấy')) wasteData['Giấy']++;
+      else wasteData['Nhựa']++;
     }
 
-    predictionLoop = setTimeout(runPrediction, 300);
-  });
-}
-
-function handleConfirm(labelIdx, labelName, confidence, category) {
-  const now = Date.now();
-
-  if (confidence < CONFIDENCE_THRESHOLD) {
-    confirmStart = null; confirmLabelIndex = null;
-    setConfirmProgress(0);
-    return;
+    saveHistory(label, res.confidence);
+    localStorage.setItem('waste_stats', JSON.stringify(wasteData));
   }
 
-  if (confirmLabelIndex !== labelIdx) {
-    confirmStart = now;
-    confirmLabelIndex = labelIdx;
+  function resetCamera() {
+    document.getElementById('preview').classList.add('hidden');
+    video.classList.remove('hidden');
+    document.getElementById('btn-capture').classList.remove('hidden');
+    document.getElementById('btn-retake').classList.add('hidden');
+    document.getElementById('instruction-card').style.display = 'none';
   }
 
-  const elapsed = now - confirmStart;
-  const ratio = Math.min(elapsed / CONFIRM_DURATION_MS, 1);
-  setConfirmProgress(ratio);
-
-  if (elapsed >= CONFIRM_DURATION_MS) {
-    // Save entry
-    const entry = {
-      label: labelName,
-      category,
-      confidence,
-      timestamp: new Date().toISOString()
+  function handleUpload(e) {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = document.getElementById('preview');
+      img.src = ev.target.result;
+      img.classList.remove('hidden');
+      video.classList.add('hidden');
+      classifier.classify(img, (results) => processResult(results[0]));
     };
-    saveEntry(entry);
-    flashSaved();
-    updateBadge();
-    // Reset confirm so it doesn't keep saving
-    confirmStart = null;
-    confirmLabelIndex = null;
-    setConfirmProgress(0);
+    reader.readAsDataURL(e.target.files[0]);
   }
-}
 
-function stopSystem() {
-  isRunning = false;
-  if (predictionLoop) { clearTimeout(predictionLoop); predictionLoop = null; }
-  if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
-  document.getElementById('cam-overlay').classList.remove('hidden');
-  document.getElementById('cam-wrap').classList.remove('scanning');
-  document.getElementById('live-indicator').style.display = 'none';
-  document.getElementById('btn-start').disabled = false;
-  document.getElementById('btn-stop').disabled = true;
-  classifier = null;
-  setResultWaiting();
-  updateLabelBars(LABELS.map(l => ({ label:l, probability:0 })));
-}
+  // Thống kê & Lịch sử
+  function renderCharts() {
+    const total = Object.values(wasteData).reduce((a, b) => a + b, 0);
+    if (total === 0) {
+      document.getElementById('no-data').classList.remove('hidden');
+      document.getElementById('has-data').classList.add('hidden');
+      return;
+    }
+    document.getElementById('no-data').classList.add('hidden');
+    document.getElementById('has-data').classList.remove('hidden');
 
-document.getElementById('btn-start').addEventListener('click', startSystem);
-document.getElementById('btn-stop').addEventListener('click', stopSystem);
+    const ctx = document.getElementById('pieChart').getContext('2d');
+    if (pieChart) pieChart.destroy();
+    pieChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(wasteData),
+        datasets: [{
+          data: Object.values(wasteData),
+          backgroundColor: ['#97A970', '#B5C99A', '#718355', '#DDB892']
+        }]
+      }
+    });
+  }
 
-// ═══════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════
-initCharts();
-updateBadge();
-updateStats();
-updateLabelBars(LABELS.map(l => ({ label:l, probability:0 })));
+  function saveHistory(label, conf) {
+    const hist = JSON.parse(localStorage.getItem('waste_hist') || '[]');
+    hist.unshift({ label, conf, time: new Date().toLocaleTimeString() });
+    localStorage.setItem('waste_hist', JSON.stringify(hist.slice(0, 10)));
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const hist = JSON.parse(localStorage.getItem('waste_hist') || '[]');
+    document.getElementById('history-list').innerHTML = hist.map(h => 
+      `<div style="padding:10px 0; border-bottom:1px solid #eee">
+        <b>${h.time}</b>: ${h.label} (${(h.conf*100).toFixed(0)}%)
+      </div>`
+    ).join('');
+  }
+
+  function loadLocalData() {
+    const saved = localStorage.getItem('waste_stats');
+    if(saved) wasteData = JSON.parse(saved);
+    renderHistory();
+  }
+
+  init();
 </script>
 </body>
 </html>
