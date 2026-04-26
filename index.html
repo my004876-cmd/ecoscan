@@ -1,264 +1,299 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>EcoScan – Phân Loại Rác Thông Minh</title>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/ml5@1/dist/ml5.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EcoScan - Modern AI Classifier</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<style>
-  :root {
-    --g1: #97A970; --g2: #B5C99A; --g3: #87986A;
-    --g4: #CFE1B9; --g5: #718355; --g6: #E9F5DB;
-    --b1: #B08968; --b2: #DDB892; --b3: #906644;
-    --bg: #F5F0E8; --card: #FFFDF7; --text: #3B3228;
-  }
+    <style>
+        :root {
+            --primary: #2D6A4F;
+            --secondary: #52B788;
+            --light: #D8F3DC;
+            --dark: #081C15;
+            --white: #ffffff;
+            --glass: rgba(255, 255, 255, 0.9);
+            --shadow: 0 12px 40px rgba(0,0,0,0.12);
+        }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Be Vietnam Pro', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 80px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { 
+            font-family: 'Be Vietnam Pro', sans-serif; 
+            background-color: #f4f7f5; 
+            color: var(--dark);
+            overflow-x: hidden;
+        }
 
-  /* ── NAVIGATION BAR ── */
-  #navbar {
-    background: linear-gradient(90deg, var(--g5), var(--b3));
-    padding: 15px; position: sticky; top: 0; z-index: 1000;
-    display: flex; justify-content: space-between; align-items: center; color: white;
-  }
-  .nav-links { display: flex; gap: 10px; }
-  .nav-item { 
-    padding: 8px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; 
-    cursor: pointer; text-decoration: none; color: rgba(255,255,255,0.8);
-  }
-  .nav-item.active { background: white; color: var(--g5); }
+        /* LOGO & MENU 3 GẠCH */
+        header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--white);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .logo { 
+            font-family: 'Montserrat', sans-serif; 
+            font-weight: 900; font-size: 1.5rem; 
+            color: var(--primary); text-transform: uppercase;
+        }
+        .menu-icon {
+            width: 30px; height: 20px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            cursor: pointer;
+        }
+        .menu-icon div { height: 3px; background: var(--primary); border-radius: 5px; transition: 0.3s; }
 
-  #main { max-width: 600px; margin: 0 auto; padding: 15px; }
-  .page { display: none; }
-  .page.active { display: block; animation: slideUp 0.3s ease-out; }
-  @keyframes slideUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
+        /* SIDE MENU */
+        #side-nav {
+            position: fixed; top: 0; right: -100%; width: 80%; height: 100%;
+            background: var(--primary); z-index: 1000; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 60px 40px; box-shadow: -10px 0 30px rgba(0,0,0,0.2);
+        }
+        #side-nav.active { right: 0; }
+        #side-nav a {
+            display: block; color: var(--white); font-size: 1.5rem; font-weight: 700;
+            text-decoration: none; margin-bottom: 30px; opacity: 0.8;
+        }
 
-  .card { background: var(--card); border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-  
-  /* ── TRANG PHÂN LOẠI ── */
-  #media-box { width: 100%; aspect-ratio: 1/1; background: #000; border-radius: 20px; overflow: hidden; position: relative; }
-  #video, #preview { width: 100%; height: 100%; object-fit: cover; }
-  .btn-main { width: 100%; padding: 15px; border-radius: 30px; border: none; font-weight: 700; font-size: 16px; margin-top: 10px; cursor: pointer; transition: 0.2s; }
-  .btn-scan { background: var(--g5); color: white; }
-  .btn-upload { background: var(--g4); color: var(--g5); }
+        /* MAIN CONTENT */
+        .container { max-width: 500px; margin: 0 auto; padding: 20px; }
+        
+        /* CAMERA VIEWPORT */
+        .viewport-wrapper {
+            position: relative; width: 100%; aspect-ratio: 1/1;
+            border-radius: 40px; overflow: hidden;
+            box-shadow: var(--shadow); border: 8px solid var(--white);
+            background: #000;
+        }
+        #webcam-container canvas { width: 100% !important; height: 100% !important; object-fit: cover; }
+        
+        .scan-overlay {
+            position: absolute; inset: 0;
+            border: 2px solid var(--secondary);
+            animation: scanning 2s infinite linear;
+            background: linear-gradient(to bottom, transparent, rgba(82, 183, 136, 0.2), transparent);
+            pointer-events: none;
+        }
+        @keyframes scanning { 
+            0% { transform: translateY(-100%); } 
+            100% { transform: translateY(100%); } 
+        }
 
-  #instruction-card { text-align: center; display: none; }
-  .bin-icon { font-size: 60px; margin-bottom: 10px; }
-  .tip-box { background: var(--g6); padding: 15px; border-radius: 15px; margin-top: 15px; font-size: 14px; text-align: left; border-left: 5px solid var(--g5); }
+        /* BUTTONS WITH EFFECTS */
+        .btn {
+            position: relative; overflow: hidden;
+            width: 100%; padding: 18px; border: none; border-radius: 20px;
+            font-weight: 800; font-size: 1rem; cursor: pointer;
+            transition: all 0.3s ease; margin-top: 20px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 8px 20px rgba(45, 106, 79, 0.3); }
+        .btn-primary:active { transform: scale(0.96); }
 
-  /* ── TRANG BIỂU ĐỒ ── */
-  .empty-state { text-align: center; padding: 40px 20px; color: var(--b1); }
-  .chart-container { height: 300px; width: 100%; }
+        /* RESULT CARD GLASS */
+        .result-card {
+            background: var(--glass); backdrop-filter: blur(10px);
+            border-radius: 30px; padding: 25px; margin-top: -50px;
+            position: relative; z-index: 10; border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: var(--shadow); display: none;
+        }
+        .result-label { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+        .advice-box { 
+            background: var(--light); padding: 15px; border-radius: 18px; 
+            font-size: 0.9rem; margin-top: 15px; border-left: 5px solid var(--secondary);
+        }
 
-  .hidden { display: none !important; }
-</style>
+        /* STATS & HISTORY */
+        .card { background: white; border-radius: 30px; padding: 25px; margin-top: 20px; box-shadow: var(--shadow); }
+        .history-item { 
+            display: flex; align-items: center; gap: 15px; padding: 15px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        .history-icon { width: 45px; height: 45px; background: var(--light); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+
+        .hidden { display: none !important; }
+    </style>
 </head>
 <body>
 
-<header id="navbar">
-  <div style="font-weight: 800;">♻️ EcoScan</div>
-  <nav class="nav-links">
-    <div class="nav-item active" onclick="showPage('scan-page', this)">📸 Quét rác</div>
-    <div class="nav-item" onclick="showPage('chart-page', this)">📊 Thống kê</div>
-    <div class="nav-item" onclick="showPage('history-page', this)">📋 Nhật ký</div>
-  </nav>
+<header>
+    <div class="logo">ECO<span>SCAN</span></div>
+    <div class="menu-icon" onclick="toggleNav()">
+        <div style="width: 100%;"></div>
+        <div style="width: 70%; align-self: flex-end;"></div>
+        <div style="width: 100%;"></div>
+    </div>
 </header>
 
-<main id="main">
-  <div id="scan-page" class="page active">
-    <div id="media-box">
-      <video id="video" autoplay playsinline></video>
-      <img id="preview" class="hidden">
-      <canvas id="canvas" class="hidden"></canvas>
+<nav id="side-nav">
+    <div style="font-size: 2rem; margin-bottom: 40px;" onclick="toggleNav()">✕</div>
+    <a href="#" onclick="showPage('scan')">QUÉT RÁC</a>
+    <a href="#" onclick="showPage('stats')">THỐNG KÊ</a>
+    <a href="#" onclick="showPage('history')">NHẬT KÝ</a>
+    <a href="#" onclick="showPage('ai')">TƯ VẤN AI</a>
+</nav>
+
+<div class="container">
+    <div id="page-scan" class="page">
+        <div class="viewport-wrapper">
+            <div id="webcam-container"></div>
+            <div class="scan-overlay"></div>
+        </div>
+
+        <button class="btn btn-primary" onclick="capture()">
+            <span>✨</span> PHÂN LOẠI NGAY
+        </button>
+
+        <div id="result-card" class="result-card">
+            <p style="text-transform: uppercase; font-size: 0.7rem; font-weight: 800; opacity: 0.5;">Đã nhận diện</p>
+            <div class="result-label" id="res-name">Nhựa</div>
+            <div class="advice-box" id="res-advice">Đang phân tích lời khuyên...</div>
+        </div>
     </div>
 
-    <button id="btn-capture" class="btn-main btn-scan" onclick="captureAndClassify()">🎯 CHỤP & PHÂN LOẠI</button>
-    <button id="btn-retake" class="btn-main btn-upload hidden" onclick="resetCamera()">🔄 QUAY LẠI CAMERA</button>
-    <button class="btn-main btn-upload" onclick="document.getElementById('file-input').click()">📁 TẢI ẢNH LÊN</button>
-    <input type="file" id="file-input" class="hidden" accept="image/*" onchange="handleUpload(event)">
+    <div id="page-stats" class="page hidden">
+        <div class="card">
+            <h2 style="margin-bottom: 20px;">Xu hướng vứt rác</h2>
+            <canvas id="statChart"></canvas>
+        </div>
+    </div>
 
-    <div id="instruction-card" class="card">
-      <div id="result-header" style="font-size: 20px; font-weight: 800;"></div>
-      <div class="bin-icon" id="bin-emoji">🗑️</div>
-      <div id="bin-text" style="font-weight: 700; font-size: 18px; margin-bottom: 10px;"></div>
-      <div id="tip-content" class="tip-box"></div>
+    <div id="page-history" class="page hidden">
+        <div class="card">
+            <h2 style="margin-bottom: 20px;">Lịch sử hoạt động</h2>
+            <div id="hist-content"></div>
+        </div>
     </div>
-  </div>
 
-  <div id="chart-page" class="page">
-    <div id="no-data" class="empty-state">
-      <div style="font-size: 50px;">📉</div>
-      <p>Chưa có dữ liệu phân loại.</p>
-      <p style="font-size: 13px;">Hãy chụp ảnh rác để bắt đầu vẽ biểu đồ!</p>
+    <div id="page-ai" class="page hidden">
+        <div class="card" style="background: var(--primary); color: white;">
+            <h2>🤖 Trợ lý Gemini AI</h2>
+            <p id="ai-insight" style="margin-top: 15px; line-height: 1.6; opacity: 0.9;">
+                Hãy bắt đầu quét rác để tôi có thể phân tích thói quen tiêu dùng của bạn và đưa ra lời khuyên cá nhân hóa.
+            </p>
+        </div>
     </div>
-    
-    <div id="has-data" class="hidden">
-      <div class="card">
-        <div style="font-weight: 700; margin-bottom: 15px;">Tỷ lệ các loại rác</div>
-        <div class="chart-container"><canvas id="pieChart"></canvas></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="history-page" class="page">
-    <div class="card">
-      <div style="font-weight: 700; margin-bottom: 10px;">10 lần quét gần nhất</div>
-      <div id="history-list" style="font-size: 14px;"></div>
-    </div>
-  </div>
-</main>
+</div>
 
 <script>
-  const MODEL_URL = 'https://teachablemachine.withgoogle.com/models/dgtSA5qiE/';
-  let classifier, video, pieChart;
-  let wasteData = { 'Carton': 0, 'Giấy': 0, 'Nhựa': 0, 'Hữu Cơ': 0 };
+    const URL = "https://teachablemachine.withgoogle.com/models/dgtSA5qiE/";
+    let model, webcam, chart;
+    let stats = JSON.parse(localStorage.getItem('eco_v6_data') || '{"Giay":0,"Nhua":0,"Carton":0,"Huu_Co":0}');
 
-  // Khởi tạo
-  async function init() {
-    video = document.getElementById('video');
-    classifier = await ml5.imageClassifier(MODEL_URL + 'model.json');
-    startCamera();
-    loadLocalData();
-  }
-
-  function startCamera() {
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-      .then(s => video.srcObject = s);
-  }
-
-  function showPage(id, el) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    el.classList.add('active');
-    if(id === 'chart-page') renderCharts();
-  }
-
-  // Phân loại
-  function captureAndClassify() {
-    const canvas = document.getElementById('canvas');
-    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-    
-    const img = document.getElementById('preview');
-    img.src = canvas.toDataURL('image/png');
-    img.classList.remove('hidden');
-    video.classList.add('hidden');
-    
-    document.getElementById('btn-capture').classList.add('hidden');
-    document.getElementById('btn-retake').classList.remove('hidden');
-
-    classifier.classify(img, (results) => {
-      processResult(results[0]);
-    });
-  }
-
-  function processResult(res) {
-    const label = res.label;
-    if (label.includes('Background')) return;
-
-    const card = document.getElementById('instruction-card');
-    const header = document.getElementById('result-header');
-    const emoji = document.getElementById('bin-emoji');
-    const txt = document.getElementById('bin-text');
-    const tip = document.getElementById('tip-content');
-
-    card.style.display = 'block';
-    header.innerText = `Nhận diện: ${label}`;
-
-    // Logic chỉ dẫn & lời khuyên
-    if (label.includes('Hữu')) {
-      emoji.innerText = "🍎";
-      txt.innerText = "BỎ VÀO THÙNG ĐỎ";
-      txt.style.color = "#906644";
-      tip.innerHTML = "<b>Lời khuyên:</b> Rác hữu cơ có thể làm phân bón. Đừng để lẫn túi nilon vào đây bạn nhé!";
-      wasteData['Hữu Cơ']++;
-    } else {
-      emoji.innerText = "♻️";
-      txt.innerText = "BỎ VÀO THÙNG XANH";
-      txt.style.color = "#718355";
-      tip.innerHTML = `<b>Lời khuyên:</b> Đây là rác tái chế (${label}). Hãy đảm bảo vật thể khô và sạch trước khi vứt.`;
-      if(label.includes('Carton')) wasteData['Carton']++;
-      else if(label.includes('Giấy')) wasteData['Giấy']++;
-      else wasteData['Nhựa']++;
-    }
-
-    saveHistory(label, res.confidence);
-    localStorage.setItem('waste_stats', JSON.stringify(wasteData));
-  }
-
-  function resetCamera() {
-    document.getElementById('preview').classList.add('hidden');
-    video.classList.remove('hidden');
-    document.getElementById('btn-capture').classList.remove('hidden');
-    document.getElementById('btn-retake').classList.add('hidden');
-    document.getElementById('instruction-card').style.display = 'none';
-  }
-
-  function handleUpload(e) {
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const img = document.getElementById('preview');
-      img.src = ev.target.result;
-      img.classList.remove('hidden');
-      video.classList.add('hidden');
-      classifier.classify(img, (results) => processResult(results[0]));
+    const LABELS = {
+        "Giay": { n: "Giấy sạch", a: "Tái chế được. Tránh để dính dầu mỡ hoặc nước sốt." },
+        "Nhua": { n: "Vật dụng Nhựa", a: "Súc sạch chai bằng nước trước khi vứt để tăng khả năng tái chế." },
+        "Carton": { n: "Thùng Carton", a: "Gấp phẳng lại sẽ giúp các bác lao công thu gom dễ dàng hơn." },
+        "Huu_Co": { n: "Rác Hữu Cơ", a: "Tuyệt vời để ủ phân bón. Đừng để lẫn mảnh nhựa vào nhé." }
     };
-    reader.readAsDataURL(e.target.files[0]);
-  }
 
-  // Thống kê & Lịch sử
-  function renderCharts() {
-    const total = Object.values(wasteData).reduce((a, b) => a + b, 0);
-    if (total === 0) {
-      document.getElementById('no-data').classList.remove('hidden');
-      document.getElementById('has-data').classList.add('hidden');
-      return;
+    // KHỞI TẠO AI
+    async function init() {
+        model = await tmImage.load(URL + "model.json", URL + "metadata.json");
+        webcam = new tmImage.Webcam(500, 500, true);
+        await webcam.setup();
+        await webcam.play();
+        document.getElementById("webcam-container").appendChild(webcam.canvas);
+        window.requestAnimationFrame(updateCam);
     }
-    document.getElementById('no-data').classList.add('hidden');
-    document.getElementById('has-data').classList.remove('hidden');
 
-    const ctx = document.getElementById('pieChart').getContext('2d');
-    if (pieChart) pieChart.destroy();
-    pieChart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: Object.keys(wasteData),
-        datasets: [{
-          data: Object.values(wasteData),
-          backgroundColor: ['#97A970', '#B5C99A', '#718355', '#DDB892']
-        }]
-      }
-    });
-  }
+    async function updateCam() {
+        webcam.update();
+        window.requestAnimationFrame(updateCam);
+    }
 
-  function saveHistory(label, conf) {
-    const hist = JSON.parse(localStorage.getItem('waste_hist') || '[]');
-    hist.unshift({ label, conf, time: new Date().toLocaleTimeString() });
-    localStorage.setItem('waste_hist', JSON.stringify(hist.slice(0, 10)));
-    renderHistory();
-  }
+    async function capture() {
+        const prediction = await model.predict(webcam.canvas);
+        let top = { p: 0, l: "" };
+        prediction.forEach(p => { if(p.probability > top.p) top = { p: p.probability, l: p.className }; });
 
-  function renderHistory() {
-    const hist = JSON.parse(localStorage.getItem('waste_hist') || '[]');
-    document.getElementById('history-list').innerHTML = hist.map(h => 
-      `<div style="padding:10px 0; border-bottom:1px solid #eee">
-        <b>${h.time}</b>: ${h.label} (${(h.conf*100).toFixed(0)}%)
-      </div>`
-    ).join('');
-  }
+        if(top.l !== "Background" && top.p > 0.8) {
+            showResult(top.l);
+            updateStats(top.l);
+        }
+    }
 
-  function loadLocalData() {
-    const saved = localStorage.getItem('waste_stats');
-    if(saved) wasteData = JSON.parse(saved);
-    renderHistory();
-  }
+    function showResult(label) {
+        const res = LABELS[label];
+        document.getElementById("result-card").style.display = "block";
+        document.getElementById("res-name").innerText = res.n;
+        document.getElementById("res-advice").innerText = "💡 " + res.a;
+        
+        // Tạo hiệu ứng rung nhẹ khi có kết quả
+        navigator.vibrate?.(50);
+    }
 
-  init();
+    function updateStats(l) {
+        stats[l]++;
+        localStorage.setItem('eco_v6_data', JSON.stringify(stats));
+        
+        // Thêm vào nhật ký
+        const hist = JSON.parse(localStorage.getItem('eco_v6_hist') || '[]');
+        hist.unshift({ n: LABELS[l].n, t: new Date().toLocaleTimeString() });
+        localStorage.setItem('eco_v6_hist', JSON.stringify(hist.slice(0,15)));
+    }
+
+    // GIAO DIỆN
+    function toggleNav() { document.getElementById("side-nav").classList.toggle("active"); }
+
+    function showPage(p) {
+        document.querySelectorAll('.page').forEach(page => page.classList.add('hidden'));
+        document.getElementById('page-'+p).classList.remove('hidden');
+        toggleNav();
+        if(p === 'stats') renderChart();
+        if(p === 'history') renderHistory();
+        if(p === 'ai') renderAI();
+    }
+
+    function renderChart() {
+        const ctx = document.getElementById('statChart').getContext('2d');
+        if(chart) chart.destroy();
+        chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Giấy', 'Nhựa', 'Carton', 'Hữu cơ'],
+                datasets: [{
+                    label: 'Số lần quét',
+                    data: [stats.Giay, stats.Nhua, stats.Carton, stats.Huu_Co],
+                    backgroundColor: '#52B788', borderRadius: 10
+                }]
+            },
+            options: { plugins: { legend: { display: false } } }
+        });
+    }
+
+    function renderHistory() {
+        const hist = JSON.parse(localStorage.getItem('eco_v6_hist') || '[]');
+        document.getElementById('hist-content').innerHTML = hist.map(h => `
+            <div class="history-item">
+                <div class="history-icon">♻️</div>
+                <div>
+                    <p style="font-weight:700">${h.n}</p>
+                    <p style="font-size:0.8rem; opacity:0.6">${h.t}</p>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderAI() {
+        const total = Object.values(stats).reduce((a,b)=>a+b, 0);
+        let msg = "Bạn chưa quét đủ dữ liệu để tôi phân tích.";
+        if(total > 5) {
+            const max = Object.keys(stats).reduce((a, b) => stats[a] > stats[b] ? a : b);
+            msg = `Dựa trên 10 lần quét gần đây, bạn vứt nhiều <b>${LABELS[max].n}</b> nhất. Tôi khuyên bạn nên sử dụng các vật dụng thay thế bền vững hơn để bảo vệ môi trường!`;
+        }
+        document.getElementById('ai-insight').innerHTML = msg;
+    }
+
+    init();
 </script>
 </body>
 </html>
