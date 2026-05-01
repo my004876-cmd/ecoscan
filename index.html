@@ -187,17 +187,29 @@
     </div>
 </div>
 
-<script>
+<script type="module">
+    // Import SDK Gemini chính thức
+    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
     const MODEL_URL = "https://teachablemachine.withgoogle.com/models/dgtSA5qiE/";
-    const API_KEY = "AIzaSyDeX3vZiqSWcVJaVwoRZtFdP2sUNXJ_wZo";
-    const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+    const API_KEY = "AIzaSyBlFvrp9-hJu49-0ULjJpDd9PUazbRAQBA";
+    
+    // Khởi tạo Gemini AI
+    const genAI = new GoogleGenerativeAI(API_KEY);
+    const aiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     let model, webcam, chart;
     let stats = JSON.parse(localStorage.getItem('eco_v8_stats') || '{"Giay":0,"Nhua":0,"Carton":0,"Huu_Co":0}');
 
+    // Xuất các hàm ra phạm vi window để các nút bấm HTML có thể gọi được
+    window.showPage = showPage;
+    window.capture = capture;
+    window.askGemini = askGemini;
+
     async function init() {
         const d = new Date();
-        document.getElementById('current-date').innerText = d.toLocaleDateString('vi-VN', {day:'numeric', month:'long'});
+        const dateEl = document.getElementById('current-date');
+        if(dateEl) dateEl.innerText = d.toLocaleDateString('vi-VN', {day:'numeric', month:'long'});
 
         try {
             model = await tmImage.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
@@ -208,7 +220,7 @@
             window.requestAnimationFrame(loop);
             updateDashboardStats();
         } catch(e) {
-            console.log("Lỗi khởi tạo camera:", e);
+            console.error("Lỗi khởi tạo camera:", e);
         }
     }
 
@@ -221,7 +233,8 @@
         document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         
-        document.getElementById('page-' + pageId).classList.remove('hidden');
+        const targetPage = document.getElementById('page-' + pageId);
+        if(targetPage) targetPage.classList.remove('hidden');
         if(btnEl) btnEl.classList.add('active');
 
         if(pageId === 'stats') renderChart();
@@ -246,7 +259,7 @@
             const data = MAP[top.l];
             document.getElementById("res-name").innerText = data.n;
             document.getElementById("res-advice").innerText = data.a;
-            document.getElementById("res-box").className = "card result-display " + data.c;
+            document.getElementById("res-box").className = "card result-display " + (data.c === 'organic' ? 'organic' : '');
             
             stats[top.l]++;
             localStorage.setItem('eco_v8_stats', JSON.stringify(stats));
@@ -256,24 +269,26 @@
             localStorage.setItem('eco_v8_hist', JSON.stringify(hist.slice(0, 10)));
             updateDashboardStats();
             
-            // Rung nhẹ trên điện thoại khi nhận diện thành công
             if (navigator.vibrate) navigator.vibrate(50);
         }
     }
 
     function updateDashboardStats() {
         const total = Object.values(stats).reduce((a,b)=>a+b, 0);
-        document.getElementById('count-total').innerText = total;
+        const totalEl = document.getElementById('count-total');
+        if(totalEl) totalEl.innerText = total;
         if(total > 0) {
             const maxKey = Object.keys(stats).reduce((a, b) => stats[a] > stats[b] ? a : b);
             const MAP_NAMES = {"Giay":"Giấy", "Nhua":"Nhựa", "Carton":"Carton", "Huu_Co":"Hữu Cơ"};
-            document.getElementById('top-type').innerText = MAP_NAMES[maxKey];
+            const topTypeEl = document.getElementById('top-type');
+            if(topTypeEl) topTypeEl.innerText = MAP_NAMES[maxKey];
         }
     }
 
     function renderHistory() {
         const hist = JSON.parse(localStorage.getItem('eco_v8_hist') || '[]');
         const container = document.getElementById('history-container');
+        if(!container) return;
         if(hist.length === 0) {
             container.innerHTML = "<p style='opacity:0.5; font-size:0.85rem;'>Chưa có lịch sử quét.</p>";
             return;
@@ -286,7 +301,9 @@
     }
 
     function renderChart() {
-        const ctx = document.getElementById('mainChart').getContext('2d');
+        const canvas = document.getElementById('mainChart');
+        if(!canvas) return;
+        const ctx = canvas.getContext('2d');
         if(chart) chart.destroy();
         chart = new Chart(ctx, {
             type: 'doughnut',
@@ -302,55 +319,51 @@
         });
     }
 
-    // GEMINI INTEGRATION
     async function renderGeminiInsight() {
         const total = Object.values(stats).reduce((a,b)=>a+b, 0);
         const el = document.getElementById('gemini-insight');
+        if(!el) return;
         
         if (total < 2) {
-            el.innerText = "Hãy quét ít nhất 2 loại rác để tôi có đủ dữ liệu phân tích thói quen của bạn.";
+            el.innerText = "Hãy quét ít nhất 2 loại rác để tôi có đủ dữ liệu phân tích.";
             return;
         }
 
         el.innerText = "Gemini đang phân tích dữ liệu...";
 
-        const prompt = `Tôi có số liệu rác thải: Giấy: ${stats.Giay}, Nhựa: ${stats.Nhua}, Carton: ${stats.Carton}, Hữu cơ: ${stats.Huu_Co}. Hãy đưa ra 1 lời khuyên ngắn gọn (dưới 40 từ) bằng tiếng Việt về cách giảm thiểu loại rác tôi vứt nhiều nhất.`;
+        const prompt = `Tôi có số liệu rác: Giấy: ${stats.Giay}, Nhựa: ${stats.Nhua}, Carton: ${stats.Carton}, Hữu cơ: ${stats.Huu_Co}. Hãy đưa ra 1 lời khuyên ngắn gọn bằng tiếng Việt về bảo vệ môi trường (dưới 40 từ).`;
 
         try {
-            const response = await fetch(GEMINI_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
-            const data = await response.json();
-            el.innerHTML = "✨ <b>Lời khuyên từ AI:</b> " + data.candidates[0].content.parts[0].text;
+            const result = await aiModel.generateContent(prompt);
+            const response = await result.response;
+            el.innerHTML = "✨ <b>Lời khuyên từ AI:</b> " + response.text();
         } catch (e) {
-            el.innerText = "Không thể kết nối với Gemini AI.";
+            console.error("Gemini Error:", e);
+            el.innerText = "Không thể kết nối với AI. Vui lòng thử lại sau.";
         }
     }
 
     async function askGemini() {
-        const input = document.getElementById('ai-input').value;
+        const inputEl = document.getElementById('ai-input');
         const resEl = document.getElementById('ai-chat-res');
-        if (!input) return;
+        if (!inputEl || !resEl || !inputEl.value) return;
 
+        const userInput = inputEl.value;
         resEl.style.display = "block";
-        resEl.innerText = "Gemini đang trả lời...";
+        resEl.innerText = "Đang suy nghĩ...";
 
         try {
-            const response = await fetch(GEMINI_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: [{ parts: [{ text: input + " (Trả lời ngắn gọn dưới 60 từ)" }] }] })
-            });
-            const data = await response.json();
-            resEl.innerText = data.candidates[0].content.parts[0].text;
-            document.getElementById('ai-input').value = "";
+            const result = await aiModel.generateContent(userInput + " (Trả lời ngắn gọn, thân thiện bằng tiếng Việt)");
+            const response = await result.response;
+            resEl.innerText = "🤖 " + response.text();
+            inputEl.value = "";
         } catch (e) {
-            resEl.innerText = "Lỗi kết nối API.";
+            console.error("Gemini Chat Error:", e);
+            resEl.innerText = "Lỗi kết nối API. Vui lòng thử lại.";
         }
     }
 
+    // Khởi chạy ứng dụng
     init();
 </script>
 </body>
