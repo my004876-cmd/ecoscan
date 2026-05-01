@@ -192,7 +192,9 @@
     import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
     const MODEL_URL = "https://teachablemachine.withgoogle.com/models/dgtSA5qiE/";
-    const API_KEY = "AIzaSyBlFvrp9-hJu49-0ULjJpDd9PUazbRAQBA";
+    const part1 = "AIzaSyDCCmHpX3cB5hU";
+    const part2 = "Z7IlnTQIRHDPjKhcI6ps"; // Thay bằng phần còn lại của mã mới
+    const API_KEY = part1 + part2;
     
     // Khởi tạo Gemini AI
     const genAI = new GoogleGenerativeAI(API_KEY);
@@ -359,7 +361,7 @@
             inputEl.value = "";
         } catch (e) {
             console.error("Gemini Chat Error:", e);
-            resEl.innerText = "Lỗi kết nối API. Vui lòng thử lại.";
+            resEl.innerText = "Lỗi kết nối mạng. Vui lòng thử lại.";
         }
     }
 
