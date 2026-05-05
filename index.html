@@ -74,6 +74,14 @@
             background: transparent; color: var(--g1); font-weight: 600; font-size: 0.9rem;
             cursor: pointer; margin-top: 10px;
         }
+        
+        /* Nút xuất file mới */
+        .btn-export {
+            background: #f0f4e8; color: var(--g1); border: 1px dashed var(--g1);
+            padding: 8px 15px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;
+            cursor: pointer; float: right; transition: 0.3s;
+        }
+        .btn-export:hover { background: var(--g1); color: white; }
 
         .hist-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.85rem; }
 
@@ -147,6 +155,7 @@
 
     <div id="page-stats" class="page-content hidden">
         <div class="card">
+            <button class="btn-export" onclick="exportStats()">📥 XUẤT CSV</button>
             <h3 style="color: var(--g1); margin-bottom: 15px;">📊 Thống Kê Rác Thải</h3>
             <div style="height: 300px;"><canvas id="mainChart"></canvas></div>
         </div>
@@ -154,6 +163,7 @@
 
     <div id="page-history" class="page-content hidden">
         <div class="card">
+            <button class="btn-export" onclick="exportHistory()">📥 XUẤT NHẬT KÝ</button>
             <h3 style="color: var(--g1); margin-bottom: 15px;">📜 Nhật Ký Gần Đây</h3>
             <div id="history-container"></div>
         </div>
@@ -218,7 +228,6 @@
             img.src = f.target.result;
             img.style.display = "block";
             document.getElementById('webcam-container').style.display = "none";
-            // Wait for image to load to predict
             img.onload = async () => {
                 const prediction = await model.predict(img);
                 processPrediction(prediction);
@@ -255,8 +264,8 @@
             stats[top.l]++;
             localStorage.setItem('eco_v8_stats', JSON.stringify(stats));
             let hist = JSON.parse(localStorage.getItem('eco_v8_hist') || '[]');
-            hist.unshift({ n: data.n, t: new Date().toLocaleTimeString('vi-VN') });
-            localStorage.setItem('eco_v8_hist', JSON.stringify(hist.slice(0, 10)));
+            hist.unshift({ n: data.n, t: new Date().toLocaleTimeString('vi-VN'), d: new Date().toLocaleDateString('vi-VN') });
+            localStorage.setItem('eco_v8_hist', JSON.stringify(hist.slice(0, 50))); // Lưu nhiều hơn để xuất file
             updateDashboardStats();
         } else {
             document.getElementById("res-name").innerText = "Chưa rõ";
@@ -278,7 +287,7 @@
         const hist = JSON.parse(localStorage.getItem('eco_v8_hist') || '[]');
         const container = document.getElementById('history-container');
         if(!container) return;
-        container.innerHTML = hist.length === 0 ? "<p>Chưa có dữ liệu.</p>" : hist.map(h => `<div class="hist-item"><b>${h.n}</b><span>${h.t}</span></div>`).join('');
+        container.innerHTML = hist.length === 0 ? "<p>Chưa có dữ liệu.</p>" : hist.slice(0,10).map(h => `<div class="hist-item"><b>${h.n}</b><span>${h.t}</span></div>`).join('');
     }
 
     function renderChart() {
@@ -298,7 +307,40 @@
         });
     }
 
-    // SIMULATED AI LOGIC WITH TYPING EFFECT
+    // HÀM XUẤT FILE CSV THỐNG KÊ
+    function exportStats() {
+        let csvContent = "data:text/csv;charset=utf-8,Loai Rac,So Luong\n";
+        csvContent += `Giay,${stats.Giay}\nNhua,${stats.Nhua}\nCarton,${stats.Carton}\nHuu Co,${stats.Huu_Co}`;
+        downloadCSV(csvContent, "thong_ke_rac_thai.csv");
+    }
+
+    // HÀM XUẤT FILE CSV NHẬT KÝ
+// HÀM XUẤT FILE CSV NHẬT KÝ (ĐÃ RÚT GỌN CÒN 2 CỘT)
+    function exportHistory() {
+        const hist = JSON.parse(localStorage.getItem('eco_v8_hist') || '[]');
+        if(hist.length === 0) return alert("Chưa có nhật ký để xuất!");
+        
+        // Tiêu đề bảng chỉ gồm Loại Rác và Thời Gian
+        let csvContent = "data:text/csv;charset=utf-8,Loai Rac,Thoi Gian\n";
+        
+        hist.forEach(h => {
+            // Chỉ lấy tên loại rác (h.n) và giờ (h.t)
+            csvContent += `${h.n},${h.t}\n`;
+        });
+        
+        downloadCSV(csvContent, "nhat_ky_quet_rac.csv");
+    }
+
+    function downloadCSV(content, filename) {
+        const encodedUri = encodeURI(content);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
     function typeWriter(text, elementId) {
         let i = 0;
         const speed = 30; 
